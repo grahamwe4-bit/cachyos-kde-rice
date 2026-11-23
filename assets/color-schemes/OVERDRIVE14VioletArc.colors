@@ -1,0 +1,201 @@
+[ColorEffects:Disabled]
+Color=22,7,32
+ColorAmount=0
+ColorEffect=0
+ContrastAmount=0.65
+ContrastEffect=1
+IntensityAmount=0.1
+IntensityEffect=2
+
+[ColorEffects:Inactive]
+ChangeSelectionColor=true
+Color=137,105,153
+ColorAmount=0.025
+ColorEffect=2
+ContrastAmount=0.1
+ContrastEffect=2
+Enable=false
+IntensityAmount=0
+IntensityEffect=0
+
+[Colors:Button]
+BackgroundAlternate=32,11,42
+BackgroundNormal=32,11,42
+DecorationFocus=0,225,255
+DecorationHover=255,49,199
+ForegroundActive=255,130,242
+ForegroundInactive=171,145,184
+ForegroundLink=0,225,255
+ForegroundNegative=255,72,83
+ForegroundNeutral=255,225,39
+ForegroundNormal=240,235,255
+ForegroundPositive=255,49,199
+ForegroundVisited=211,145,255
+
+[Colors:Complementary]
+BackgroundAlternate=32,11,42
+BackgroundNormal=14,5,21
+DecorationFocus=0,225,255
+DecorationHover=255,49,199
+ForegroundActive=255,130,242
+ForegroundInactive=171,145,184
+ForegroundLink=0,225,255
+ForegroundNegative=255,72,83
+ForegroundNeutral=255,225,39
+ForegroundNormal=240,235,255
+ForegroundPositive=255,49,199
+ForegroundVisited=211,145,255
+
+[Colors:Header]
+BackgroundAlternate=32,11,42
+BackgroundNormal=18,8,27
+DecorationFocus=0,225,255
+DecorationHover=255,49,199
+ForegroundActive=255,130,242
+ForegroundInactive=171,145,184
+ForegroundLink=0,225,255
+ForegroundNegative=255,72,83
+ForegroundNeutral=255,225,39
+ForegroundNormal=240,235,255
+ForegroundPositive=255,49,199
+ForegroundVisited=211,145,255
+
+[Colors:Header][Inactive]
+BackgroundAlternate=32,11,42
+BackgroundNormal=18,8,27
+DecorationFocus=0,225,255
+DecorationHover=255,49,199
+ForegroundActive=255,130,242
+ForegroundInactive=171,145,184
+ForegroundLink=0,225,255
+ForegroundNegative=255,72,83
+ForegroundNeutral=255,225,39
+ForegroundNormal=240,235,255
+ForegroundPositive=255,49,199
+ForegroundVisited=211,145,255
+
+[Colors:Selection]
+BackgroundAlternate=255,49,199
+BackgroundNormal=0,225,255
+DecorationFocus=0,225,255
+DecorationHover=255,49,199
+ForegroundActive=8,3,13
+ForegroundInactive=171,145,184
+ForegroundLink=8,3,13
+ForegroundNegative=255,72,83
+ForegroundNeutral=255,225,39
+ForegroundNormal=8,3,13
+ForegroundPositive=255,49,199
+ForegroundVisited=211,145,255
+
+[Colors:Tooltip]
+BackgroundAlternate=32,11,42
+BackgroundNormal=18,8,27
+DecorationFocus=0,225,255
+DecorationHover=255,49,199
+ForegroundActive=255,130,242
+ForegroundInactive=171,145,184
+ForegroundLink=0,225,255
+ForegroundNegative=255,72,83
+ForegroundNeutral=255,225,39
+ForegroundNormal=240,235,255
+ForegroundPositive=255,49,199
+ForegroundVisited=211,145,255
+
+[Colors:View]
+BackgroundAlternate=32,11,42
+BackgroundNormal=8,3,13
+DecorationFocus=0,225,255
+DecorationHover=255,49,199
+ForegroundActive=255,130,242
+ForegroundInactive=171,145,184
+ForegroundLink=0,225,255
+ForegroundNegative=255,72,83
+ForegroundNeutral=255,225,39
+ForegroundNormal=240,235,255
+ForegroundPositive=255,49,199
+ForegroundVisited=211,145,255
+
+[Colors:Window]
+BackgroundAlternate=32,11,42
+BackgroundNormal=18,8,27
+DecorationFocus=0,225,255
+DecorationHover=255,49,199
+ForegroundActive=255,130,242
+ForegroundInactive=171,145,184
+ForegroundLink=0,225,255
+ForegroundNegative=255,72,83
+ForegroundNeutral=255,225,39
+ForegroundNormal=240,235,255
+ForegroundPositive=255,49,199
+ForegroundVisited=211,145,255
+
+[General]
+ColorScheme=OVERDRIVE14VioletArc
+Name=OVERDRIVE / 14 — Violet Arc · Violet Arc
+Name[ar]=OVERDRIVE / 14 — Violet Arc
+Name[az]=OVERDRIVE / 14 — Violet Arc
+Name[bg]=OVERDRIVE / 14 — Violet Arc
+Name[bs]=OVERDRIVE / 14 — Violet Arc
+Name[ca]=OVERDRIVE / 14 — Violet Arc
+Name[ca@valencia]=OVERDRIVE / 14 — Violet Arc
+Name[cs]=OVERDRIVE / 14 — Violet Arc
+Name[da]=OVERDRIVE / 14 — Violet Arc
+Name[de]=OVERDRIVE / 14 — Violet Arc
+Name[el]=OVERDRIVE / 14 — Violet Arc
+Name[en_GB]=OVERDRIVE / 14 — Violet Arc
+Name[eo]=OVERDRIVE / 14 — Violet Arc
+Name[es]=OVERDRIVE / 14 — Violet Arc
+Name[et]=OVERDRIVE / 14 — Violet Arc
+Name[eu]=OVERDRIVE / 14 — Violet Arc
+Name[fi]=OVERDRIVE / 14 — Violet Arc
+Name[fr]=OVERDRIVE / 14 — Violet Arc
+Name[gl]=OVERDRIVE / 14 — Violet Arc
+Name[he]=OVERDRIVE / 14 — Violet Arc
+Name[hi]=OVERDRIVE / 14 — Violet Arc
+Name[hu]=OVERDRIVE / 14 — Violet Arc
+Name[ia]=OVERDRIVE / 14 — Violet Arc
+Name[id]=OVERDRIVE / 14 — Violet Arc
+Name[is]=OVERDRIVE / 14 — Violet Arc
+Name[it]=OVERDRIVE / 14 — Violet Arc
+Name[ja]=OVERDRIVE / 14 — Violet Arc
+Name[ka]=OVERDRIVE / 14 — Violet Arc
+Name[ko]=OVERDRIVE / 14 — Violet Arc
+Name[lt]=OVERDRIVE / 14 — Violet Arc
+Name[lv]=OVERDRIVE / 14 — Violet Arc
+Name[nb]=OVERDRIVE / 14 — Violet Arc
+Name[nl]=OVERDRIVE / 14 — Violet Arc
+Name[nn]=OVERDRIVE / 14 — Violet Arc
+Name[pa]=OVERDRIVE / 14 — Violet Arc
+Name[pl]=OVERDRIVE / 14 — Violet Arc
+Name[pt]=OVERDRIVE / 14 — Violet Arc
+Name[pt_BR]=OVERDRIVE / 14 — Violet Arc
+Name[ro]=OVERDRIVE / 14 — Violet Arc
+Name[ru]=OVERDRIVE / 14 — Violet Arc
+Name[sa]=OVERDRIVE / 14 — Violet Arc
+Name[sk]=OVERDRIVE / 14 — Violet Arc
+Name[sl]=OVERDRIVE / 14 — Violet Arc
+Name[sr]=OVERDRIVE / 14 — Violet Arc
+Name[sr@ijekavian]=OVERDRIVE / 14 — Violet Arc
+Name[sr@ijekavianlatin]=OVERDRIVE / 14 — Violet Arc
+Name[sr@latin]=OVERDRIVE / 14 — Violet Arc
+Name[sv]=OVERDRIVE / 14 — Violet Arc
+Name[ta]=OVERDRIVE / 14 — Violet Arc
+Name[tg]=OVERDRIVE / 14 — Violet Arc
+Name[tr]=OVERDRIVE / 14 — Violet Arc
+Name[uk]=OVERDRIVE / 14 — Violet Arc
+Name[zh_CN]=OVERDRIVE / 14 — Violet Arc
+Name[zh_TW]=OVERDRIVE / 14 — Violet Arc
+shadeSortColumn=true
+
+[KDE]
+contrast=4
+
+[WM]
+activeBackground=255,49,199
+activeBlend=8,3,13
+activeForeground=8,3,13
+inactiveBackground=32,11,42
+inactiveBlend=171,145,184
+inactiveForeground=240,235,255
+

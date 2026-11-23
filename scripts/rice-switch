@@ -1,0 +1,122 @@
+#!/usr/bin/env python3
+import json
+import os
+import re
+import shutil
+import subprocess
+import sys
+from pathlib import Path
+
+h=Path.home()
+if len(sys.argv)!=2:
+    raise SystemExit("Choose a session from Overdrive, Phosphor, Lo-Fi, Old Times, or Colorways.")
+choice=sys.argv[1].lower()
+if choice=="phosphor14":
+    subprocess.run([str(h/".local/bin/phosphor-season"),"auto"],check=True)
+    raise SystemExit
+
+modes={
+    "overdrive14":("OVERDRIVE14","Hyperpulse","overdrive"),
+    "overdrive-tempest":("OVERDRIVE14NeonTempest","Neon Tempest","overdrive-tempest"),
+    "overdrive-solarflare":("OVERDRIVE14Solarflare","Solarflare","overdrive-solarflare"),
+    "overdrive-violet-arc":("OVERDRIVE14VioletArc","Violet Arc","overdrive-violet-arc"),
+    "lofi14":("LOFI14","Night Radio","lofi"),
+    "lofi-rainline":("LOFI14Rainline","Rainline","lofi-rainline"),
+    "lofi-afterglow":("LOFI14Afterglow","Afterglow","lofi-afterglow"),
+    "lofi-cassette":("LOFI14Cassette","Cassette","lofi-cassette"),
+    "old-times":("OldTimes","Old Times","old-times"),
+    "custom-spectrum-neon-harbor":("Spectrum14NeonHarbor","Neon Harbor","spectrum-neon-harbor"),
+    "custom-spectrum-ghost-signal":("Spectrum14GhostSignal","Ghost Signal","spectrum-ghost-signal"),
+    "custom-spectrum-electric-bloom":("Spectrum14ElectricBloom","Electric Bloom","spectrum-electric-bloom"),
+    "custom-spectrum-midnight-prism":("Spectrum14MidnightPrism","Midnight Prism","spectrum-midnight-prism"),
+    "custom-spectrum-chrome-mirage":("Spectrum14ChromeMirage","Chrome Mirage","spectrum-chrome-mirage"),
+    "custom-spectrum-circuit-rose":("Spectrum14CircuitRose","Circuit Rose","spectrum-circuit-rose"),
+    "custom-spectrum-plasma-horizon":("Spectrum14PlasmaHorizon","Plasma Horizon","spectrum-plasma-horizon"),
+    "custom-spectrum-quantum-tide":("Spectrum14QuantumTide","Quantum Tide","spectrum-quantum-tide"),
+    "custom-spectrum-starlight-engine":("Spectrum14StarlightEngine","Starlight Engine","spectrum-starlight-engine"),
+    "custom-spectrum-velvet-voltage":("Spectrum14VelvetVoltage","Velvet Voltage","spectrum-velvet-voltage"),
+    "custom-spectrum-cyber-lotus":("Spectrum14CyberLotus","Cyber Lotus","spectrum-cyber-lotus"),
+    "custom-spectrum-nightfall-reactor":("Spectrum14NightfallReactor","Nightfall Reactor","spectrum-nightfall-reactor"),
+    "custom-spectrum-solar-echo":("Spectrum14SolarEcho","Solar Echo","spectrum-solar-echo"),
+    "custom-spectrum-obsidian-pulse":("Spectrum14ObsidianPulse","Obsidian Pulse","spectrum-obsidian-pulse"),
+    "custom-spectrum-iridescent-rain":("Spectrum14IridescentRain","Iridescent Rain","spectrum-iridescent-rain"),
+    "custom-spectrum-lunar-frequency":("Spectrum14LunarFrequency","Lunar Frequency","spectrum-lunar-frequency"),
+    "custom-spectrum-deep-space-radio":("Spectrum14DeepSpaceRadio","Deep Space Radio","spectrum-deep-space-radio"),
+    "custom-spectrum-digital-sakura":("Spectrum14DigitalSakura","Digital Sakura","spectrum-digital-sakura"),
+    "custom-spectrum-photon-garden":("Spectrum14PhotonGarden","Photon Garden","spectrum-photon-garden"),
+    "custom-spectrum-cobalt-reverie":("Spectrum14CobaltReverie","Cobalt Reverie","spectrum-cobalt-reverie"),
+    "custom-spectrum-amber-signal":("Spectrum14AmberSignal","Amber Signal","spectrum-amber-signal"),
+    "custom-spectrum-violet-tides":("Spectrum14VioletTides","Violet Tides","spectrum-violet-tides"),
+    "custom-spectrum-emerald-orbit":("Spectrum14EmeraldOrbit","Emerald Orbit","spectrum-emerald-orbit"),
+    "custom-spectrum-crimson-eclipse":("Spectrum14CrimsonEclipse","Crimson Eclipse","spectrum-crimson-eclipse"),
+    "custom-spectrum-glacier-protocol":("Spectrum14GlacierProtocol","Glacier Protocol","spectrum-glacier-protocol"),
+    "custom-spectrum-rose-quartz-drive":("Spectrum14RoseQuartzDrive","Rose Quartz Drive","spectrum-rose-quartz-drive"),
+    "custom-spectrum-spectral-forest":("Spectrum14SpectralForest","Spectral Forest","spectrum-spectral-forest"),
+    "custom-spectrum-golden-static":("Spectrum14GoldenStatic","Golden Static","spectrum-golden-static"),
+    "custom-spectrum-ultraviolet-dream":("Spectrum14UltravioletDream","Ultraviolet Dream","spectrum-ultraviolet-dream"),
+    "custom-spectrum-oceanic-pulse":("Spectrum14OceanicPulse","Oceanic Pulse","spectrum-oceanic-pulse"),
+    "custom-spectrum-ruby-transmission":("Spectrum14RubyTransmission","Ruby Transmission","spectrum-ruby-transmission"),
+    "custom-spectrum-celestial-drift":("Spectrum14CelestialDrift","Celestial Drift","spectrum-celestial-drift"),
+    "custom-aurora-drift":("AuroraDrift","Aurora Drift","aurora-drift"),
+    "custom-crimson-frequency":("CrimsonFrequency","Crimson Frequency","crimson-frequency"),
+    "custom-moonlit-orchid":("MoonlitOrchid","Moonlit Orchid","moonlit-orchid"),
+    "custom-arctic-mirage":("ArcticMirage","Arctic Mirage","arctic-mirage"),
+    "custom-wildwood-circuit":("WildwoodCircuit","Wildwood Circuit","wildwood-circuit"),
+    "custom-copper-nocturne":("CopperNocturne","Copper Nocturne","copper-nocturne"),
+    "custom-solar-vanta":("SolarVanta","Solar Vanta","solar-vanta"),
+    "custom-abyssal-current":("AbyssalCurrent","Abyssal Current","abyssal-current"),
+}
+if choice not in modes:
+    raise SystemExit("Choose an Overdrive, Phosphor, Lo-Fi, Old Times, or Colorways session.")
+ident,label,suffix=modes[choice]
+def run(*args):
+    subprocess.run(args,check=True)
+
+run("plasma-apply-colorscheme",ident)
+run("kwriteconfig6","--file","kdeglobals","--group","General","--key","ColorScheme",ident,"--notify")
+run("kwriteconfig6","--file","kdeglobals","--group","Icons","--key","Theme",ident,"--notify")
+run("kwriteconfig6","--file","plasma-org.kde.plasma.desktop-appletsrc","--group","Containments","--group","23","--group","Applets","--group","24","--group","Configuration","--group","General","--key","icon","phosphor14-"+suffix,"--notify")
+shutil.copy2(h/".local/share/icons"/ident/"scalable/apps/phosphor14.svg",h/".local/share/icons/hicolor/scalable/apps/phosphor14.svg")
+run("kwriteconfig6","--file","konsolerc","--group","Desktop Entry","--key","DefaultProfile",ident+".profile","--notify")
+folder=h/".local/share/wallpapers"/ident
+video=json.dumps([{"filename":(folder/"live.mp4").as_uri(),"enabled":True,"loop":True}])
+params="{'VideoUrls': <"+repr(video)+">, 'Volume': <0>, 'PauseBatteryLevel': <0>, 'PauseMode': <3>}"
+run("gdbus","call","--session","--dest","org.kde.plasmashell","--object-path","/PlasmaShell","--method","org.kde.PlasmaShell.setWallpaper","luisbocanegra.smart.video.wallpaper.reborn",params,"0")
+for key in ("Image","PreviewImage"):
+    run("kwriteconfig6","--file","kscreenlockerrc","--group","Greeter","--group","Wallpaper","--group","org.kde.image","--group","General","--key",key,(folder/"wallpaper.png").as_uri(),"--notify")
+
+# Update only Console and the custom launcher shortcut icons.
+desktop=Path(subprocess.check_output(["xdg-user-dir","DESKTOP"],text=True).strip())
+changed=[]
+for shortcut in desktop.glob("*.desktop"):
+    if shortcut.is_symlink():
+        continue
+    text=shortcut.read_text()
+    section=re.search(r"(?ms)^\[Desktop Entry\]\r?\n(.*?)(?=^\[|\Z)",text)
+    if not section:
+        continue
+    primary=section.group(1)
+    match=re.search(r"(?m)^Icon=(.+)$",primary)
+    if not match:
+        continue
+    name=match.group(1).strip()
+    if "/.local/share/icons/" in name:
+        name=Path(name).stem
+    if name not in ("phosphor14","utilities-terminal"):
+        continue
+    icon=h/".local/share/icons"/ident/"scalable/apps"/(name+".svg")
+    if not icon.is_file():
+        continue
+    primary=primary[:match.start(1)]+str(icon)+primary[match.end(1):]
+    new=text[:section.start(1)]+primary+text[section.end(1):]
+    if new!=text:
+        temporary=shortcut.with_name("."+shortcut.name+".lofi-tmp")
+        temporary.write_text(new)
+        shutil.copymode(shortcut,temporary)
+        os.replace(temporary,shortcut)
+        changed.append(shortcut.as_uri())
+if changed:
+    subprocess.run(["gdbus","emit","--session","--object-path","/","--signal","org.kde.KDirNotify.FilesChanged",repr(changed)],check=False)
+run(str(h/".local/bin/phosphor-refresh-taskbar"),ident)
+subprocess.run([str(h/".local/bin/rice-fetch-theme")],check=False)
+print(("OVERDRIVE / 14" if ident.startswith("OVERDRIVE14") else "OLD TIMES" if ident == "OldTimes" else "SPECTRUM / 14" if ident.startswith("Spectrum14") else "COLORWAYS / 14" if ident in {'AuroraDrift','CrimsonFrequency','MoonlitOrchid','ArcticMirage','WildwoodCircuit','CopperNocturne','SolarVanta','AbyssalCurrent'} else "LO-FI / 14"), "·", label, "applied")

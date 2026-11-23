@@ -1,0 +1,75 @@
+{
+  "layer": "bottom",
+  "output": "eDP-1",
+  "position": "top",
+  "height": 46,
+  "width": 1440,
+  "margin": "0",
+  "spacing": 8,
+  "exclusive": false,
+  "fixed-center": true,
+  "reload_style_on_change": true,
+  "modules-left": ["custom/rice"],
+  "modules-center": ["clock"],
+  "modules-right": ["cpu", "memory", "network", "pulseaudio", "battery", "tray"],
+
+  "custom/rice": {
+    "exec": "$HOME/.local/bin/rice-waybar-status",
+    "return-type": "json",
+    "interval": 5,
+    "tooltip": true
+  },
+
+  "clock": {
+    "format": "{:%a  ·  %d %b  ·  %H:%M}",
+    "tooltip-format": "<tt>{calendar}</tt>",
+    "calendar": {
+      "mode": "month",
+      "format": {
+        "today": "<span color='#ffffff'><b>{}</b></span>"
+      }
+    }
+  },
+
+  "cpu": {
+    "format": "CPU  {usage}%",
+    "tooltip-format": "Processor load"
+  },
+
+  "memory": {
+    "format": "RAM  {percentage}%",
+    "tooltip-format": "Memory in use"
+  },
+
+  "network": {
+    "format-wifi": "NET  {signalStrength}%",
+    "format-ethernet": "NET  {ifname}",
+    "format-disconnected": "NET  OFFLINE",
+    "tooltip-format-wifi": "{essid}  ·  {ifname}",
+    "tooltip-format-ethernet": "{ifname}  ·  {ipaddr}",
+    "tooltip-format-disconnected": "No network connection"
+  },
+
+  "pulseaudio": {
+    "format": "VOL  {volume}%",
+    "format-muted": "VOL  MUTED",
+    "tooltip-format": "{desc}"
+  },
+
+  "battery": {
+    "format": "BAT  {capacity}%",
+    "format-charging": "BAT  +{capacity}%",
+    "format-discharging": "BAT  {capacity}%",
+    "format-full": "BAT  FULL",
+    "states": {
+      "warning": 25,
+      "critical": 12
+    },
+    "tooltip-format": "{timeTo}  ·  {capacity}%"
+  },
+
+  "tray": {
+    "spacing": 8,
+    "icon-size": 16
+  }
+}

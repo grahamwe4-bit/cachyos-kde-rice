@@ -1,0 +1,8 @@
+[Desktop Entry]
+Hidden=false
+Type=Application
+Name=Cyberpunk Rice
+Comment=Launch Matrix terminal tools
+Exec=@HOME@/.local/bin/rice-startup.sh
+Terminal=false
+X-KDE-autostart-after=panel

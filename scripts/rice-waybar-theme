@@ -1,0 +1,166 @@
+#!/usr/bin/env python3
+from collections import Counter
+from configparser import ConfigParser
+from pathlib import Path
+import colorsys
+import os
+import re
+import shutil
+import subprocess
+
+home = Path.home()
+out = home / ".config/waybar/style.css"
+result = subprocess.run(
+    ["kreadconfig6", "--file", "kdeglobals", "--group", "General", "--key", "ColorScheme"],
+    capture_output=True, text=True
+)
+scheme = result.stdout.strip() or "PHOSPHOR14"
+palette = home / ".local/share/color-schemes" / (scheme + ".colors")
+parser = ConfigParser(interpolation=None)
+parser.optionxform = str
+if palette.is_file():
+    parser.read(palette, encoding="utf-8")
+
+def kde_color(section, key, fallback):
+    try:
+        values = [int(v.strip()) for v in parser.get(section, key).split(",")]
+        if len(values) >= 3:
+            return "#{:02x}{:02x}{:02x}".format(*values[:3])
+    except Exception:
+        pass
+    return fallback
+
+def luminance(hexcolor):
+    r, g, b = (int(hexcolor[i:i+2], 16) / 255 for i in (1, 3, 5))
+    return 0.2126*r + 0.7152*g + 0.0722*b
+
+def saturation(hexcolor):
+    r, g, b = (int(hexcolor[i:i+2], 16) / 255 for i in (1, 3, 5))
+    return colorsys.rgb_to_hls(r, g, b)[2]
+
+wallpaper_root = home / ".local/share/wallpapers"
+if scheme.startswith("PHOSPHOR14"):
+    season = scheme.removeprefix("PHOSPHOR14")
+    svg_path = (wallpaper_root / "PHOSPHOR-14" / season / "wallpaper.svg"
+                if season else wallpaper_root / "PHOSPHOR-14" / "ga401qm-phosphor-wallpaper.svg")
+else:
+    svg_path = wallpaper_root / scheme / "wallpaper.svg"
+
+svg = svg_path.read_text(encoding="utf-8", errors="ignore") if svg_path.is_file() else ""
+wallpaper_bg = None
+wallpaper_surface = None
+gradient_pattern = r'<(?:linear|radial)Gradient\b([^>]*)>(.*?)</(?:linear|radial)Gradient>'
+for attrs, body in re.findall(gradient_pattern, svg, flags=re.I | re.S):
+    id_match = re.search(r"""\bid=["'](ground|bg)["']""", attrs, flags=re.I)
+    if id_match:
+        stop_pattern = r"""stop-color\s*=\s*["'](#[0-9a-fA-F]{6})["']"""
+        stops = re.findall(stop_pattern, body)
+        if stops:
+            wallpaper_bg = stops[0].lower()
+            wallpaper_surface = stops[len(stops)//2].lower()
+        break
+
+def svg_accents():
+    counts = Counter(c.lower() for c in re.findall(r'#[0-9a-fA-F]{6}\b', svg))
+    vivid = [(count, saturation(color), color) for color, count in counts.items()
+             if saturation(color) >= 0.30 and 0.18 <= luminance(color) <= 0.92]
+    vivid.sort(reverse=True)
+    if not vivid:
+        return None, None
+    primary = vivid[0][2]
+    secondary = next((item[2] for item in vivid[1:] if item[2] != primary), None)
+    return primary, secondary
+
+svg_accent, svg_accent2 = svg_accents()
+base = wallpaper_bg or kde_color("Colors:View", "BackgroundNormal", "#080d14")
+surface = wallpaper_surface or kde_color("Colors:Window", "BackgroundNormal", base)
+foreground = kde_color("Colors:Window", "ForegroundNormal", "#d8e3ef")
+muted = kde_color("Colors:Window", "ForegroundInactive", "#8794a3")
+accent = svg_accent or kde_color("Colors:Window", "DecorationFocus", "#55e7d0")
+accent2 = svg_accent2 or kde_color("Colors:Window", "ForegroundPositive", accent)
+warning = kde_color("Colors:Window", "ForegroundNeutral", "#f0bf67")
+danger = kde_color("Colors:Window", "ForegroundNegative", "#ff657a")
+
+template = """/* Generated from the active KDE theme wallpaper and color scheme. */
+@define-color bar_bg BASE;
+@define-color surface SURFACE;
+@define-color ink FOREGROUND;
+@define-color muted MUTED;
+@define-color accent ACCENT;
+@define-color accent2 ACCENT2;
+@define-color warning WARNING;
+@define-color danger DANGER;
+
+window#waybar {
+  background: transparent;
+  color: @ink;
+  font-family: "Noto Sans", "Cantarell", sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+}
+window#waybar > box {
+  background-color: alpha(@bar_bg, 0.90);
+  border: 1px solid alpha(@accent, 0.42);
+  border-radius: 0 0 13px 13px;
+}
+.modules-left, .modules-center, .modules-right {
+  margin: 4px 7px;
+}
+#custom-rice {
+  color: @accent;
+  background-color: alpha(@surface, 0.78);
+  border: 1px solid alpha(@accent, 0.54);
+  border-radius: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 0 14px;
+  margin: 2px 3px;
+}
+#clock {
+  color: @ink;
+  background-color: alpha(@surface, 0.76);
+  border: 1px solid alpha(@accent, 0.20);
+  border-radius: 9px;
+  padding: 0 16px;
+  margin: 2px 3px;
+  font-weight: 600;
+}
+#cpu, #memory, #network, #pulseaudio, #battery, #tray {
+  background-color: alpha(@surface, 0.76);
+  border: 1px solid alpha(@accent, 0.18);
+  border-radius: 9px;
+  padding: 0 10px;
+  margin: 2px 2px;
+}
+#cpu { color: @accent; }
+#memory { color: @accent2; }
+#network { color: @ink; }
+#pulseaudio { color: @accent; }
+#battery { color: @ink; }
+#battery.warning { color: @warning; border-color: alpha(@warning, 0.65); }
+#battery.critical { color: @danger; border-color: alpha(@danger, 0.75); }
+#pulseaudio.muted, #network.disconnected { color: @muted; }
+#tray { padding: 0 8px; }
+#custom-rice:hover, #clock:hover, #cpu:hover, #memory:hover,
+#network:hover, #pulseaudio:hover, #battery:hover {
+  border-color: alpha(@accent, 0.72);
+  background-color: alpha(@surface, 0.94);
+}
+tooltip {
+  background-color: alpha(@bar_bg, 0.96);
+  color: @ink;
+  border: 1px solid alpha(@accent, 0.55);
+  border-radius: 8px;
+}
+"""
+for key, value in {
+    "BASE": base, "SURFACE": surface, "FOREGROUND": foreground,
+    "MUTED": muted, "ACCENT2": accent2, "ACCENT": accent,
+    "WARNING": warning, "DANGER": danger
+}.items():
+    template = template.replace(key, value)
+
+out.parent.mkdir(parents=True, exist_ok=True)
+tmp = out.with_suffix(".css.tmp")
+tmp.write_text(template, encoding="utf-8")
+os.replace(tmp, out)

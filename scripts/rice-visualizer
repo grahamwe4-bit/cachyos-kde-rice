@@ -1,0 +1,393 @@
+#!/usr/bin/env python3
+"""Use the active KDE color scheme for CAVA and CMatrix, following rice switches."""
+import configparser
+import colorsys
+from collections import Counter
+import fcntl
+import os
+import pty
+import re
+import select
+import shutil
+import signal
+import subprocess
+import sys
+import termios
+import time
+import tty
+from pathlib import Path
+
+HOME = Path.home()
+CONFIG_HOME = Path(os.environ.get("XDG_CONFIG_HOME", HOME / ".config"))
+KDEGLOBALS = CONFIG_HOME / "kdeglobals"
+KONSOLE_DIR = HOME / ".local/share/konsole"
+CAVA_CONFIG = CONFIG_HOME / "cava/config"
+ANSI = {
+    1: ("red", "!", (255, 85, 85)),
+    2: ("green", "@", (80, 250, 123)),
+    3: ("yellow", "#", (241, 250, 140)),
+    4: ("blue", "$", (98, 114, 164)),
+    5: ("magenta", "%", (255, 121, 198)),
+    6: ("cyan", "^", (139, 233, 253)),
+    7: ("white", "&", (248, 248, 242)),
+}
+
+def read_ini(path):
+    parser = configparser.ConfigParser(interpolation=None, strict=False)
+    parser.optionxform = str
+    try:
+        parser.read(path, encoding="utf-8")
+    except (OSError, configparser.Error):
+        pass
+    return parser
+
+def current_scheme():
+    return read_ini(KDEGLOBALS).get("General", "ColorScheme", fallback="Breeze").strip() or "Breeze"
+
+def rgb(value):
+    if not value:
+        return None
+    value = value.strip().strip("'\"")
+    if re.fullmatch(r"#[0-9a-fA-F]{6}", value):
+        return tuple(int(value[i:i + 2], 16) for i in (1, 3, 5))
+    match = re.fullmatch(r"\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*", value)
+    if match:
+        values = tuple(int(part) for part in match.groups())
+        if all(0 <= part <= 255 for part in values):
+            return values
+    return None
+
+def icon_palette(scheme):
+    path = HOME / ".local/share/icons" / scheme / "scalable/apps/phosphor14.svg"
+    try:
+        text = path.read_text(encoding="utf-8")
+    except OSError:
+        return [], None
+    matches = [value.lower() for value in re.findall(r"#[0-9a-fA-F]{6}", text)]
+    counts = Counter(matches)
+    order = list(dict.fromkeys(matches))
+    accents = []
+    for value in order:
+        color = rgb(value)
+        if color is not None and max(color) >= 100 and max(color) - min(color) >= 32:
+            accents.append((value, color))
+    accents.sort(key=lambda item: (-counts[item[0]], order.index(item[0])))
+    if not accents:
+        return [], None
+    return [color for _, color in accents[:6]], accents[0][1]
+
+def theme_palette(scheme):
+    kde = read_ini(HOME / ".local/share/color-schemes" / (scheme + ".colors"))
+    window = kde["Colors:Window"] if kde.has_section("Colors:Window") else {}
+    kde_accents = []
+    for key in ("DecorationFocus", "DecorationHover", "ForegroundActive",
+                "ForegroundLink", "ForegroundNeutral", "ForegroundPositive",
+                "ForegroundVisited"):
+        value = rgb(window.get(key, ""))
+        if value is not None and value not in kde_accents:
+            kde_accents.append(value)
+
+    console = read_ini(KONSOLE_DIR / (scheme + ".colorscheme"))
+    palette = {}
+    for index in range(1, 8):
+        value = rgb(console.get("Color{}".format(index), "Color", fallback=""))
+        if value is not None:
+            palette[index] = value
+
+    visualizer_colors, icon_focus = icon_palette(scheme)
+    if not visualizer_colors:
+        visualizer_colors = [palette[index] for index in sorted(palette) if index != 7]
+    if not visualizer_colors:
+        visualizer_colors = kde_accents
+    if not visualizer_colors:
+        visualizer_colors = [ANSI[index][2] for index in range(1, 8)]
+    focus = icon_focus or rgb(window.get("DecorationFocus", "")) or rgb(window.get("ForegroundLink", ""))
+    return visualizer_colors, palette, focus or visualizer_colors[0]
+
+def matrix_color(scheme):
+    accents, palette, target = theme_palette(scheme)
+    choices = palette or {index: ANSI[index][2] for index in range(1, 8)}
+    def distance(left, right):
+        left_hsv = colorsys.rgb_to_hsv(*(value / 255 for value in left))
+        right_hsv = colorsys.rgb_to_hsv(*(value / 255 for value in right))
+        hue = abs(left_hsv[0] - right_hsv[0])
+        hue = min(hue, 1 - hue)
+        return hue * 2 + abs(left_hsv[1] - right_hsv[1]) * 0.75 + abs(left_hsv[2] - right_hsv[2]) * 0.25
+    def score(item):
+        index, candidate = item
+        name_color = ANSI.get(index, ANSI[2])[2]
+        return distance(target, candidate), distance(target, name_color), index
+    index = min(choices.items(), key=score)[0]
+    return ANSI.get(index, ANSI[2])[:2]
+
+def cava_gradient(accents, count=8):
+    if len(accents) == 1:
+        return [accents[0]] * count
+    result = []
+    for point in range(count):
+        position = point * (len(accents) - 1) / (count - 1)
+        left = int(position)
+        right = min(left + 1, len(accents) - 1)
+        fraction = position - left
+        result.append(tuple(round(accents[left][i] * (1 - fraction) +
+                                  accents[right][i] * fraction) for i in range(3)))
+    return result
+
+def hex_rgb(value):
+    return "#{:02x}{:02x}{:02x}".format(*value)
+
+def set_konsole_profile(scheme):
+    profile = read_ini(KONSOLE_DIR / (scheme + ".profile"))
+    name = profile.get("General", "Name", fallback="").strip()
+    service = os.environ.get("KONSOLE_DBUS_SERVICE")
+    session = os.environ.get("KONSOLE_DBUS_SESSION")
+    qdbus = shutil.which("qdbus6") or shutil.which("qdbus")
+    if not (name and service and session and qdbus):
+        return
+    try:
+        subprocess.run([qdbus, service, session, "org.kde.konsole.Session.setProfile", name],
+                       stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
+                       stderr=subprocess.DEVNULL, timeout=2, check=False)
+    except (OSError, subprocess.TimeoutExpired):
+        pass
+
+def build_cava_config(base, scheme):
+    accents, _, _ = theme_palette(scheme)
+    lines = ["[color]", "gradient = 1"]
+    for index, value in enumerate(cava_gradient(accents), 1):
+        lines.append("gradient_color_{} = '{}'".format(index, hex_rgb(value)))
+    lines.append("theme = 'none'")
+    color_block = "\n".join(lines) + "\n"
+
+    general = re.search(r"(?ms)^\[general\][ \t]*\n(.*?)(?=^\[[^]]+\][ \t]*$|\Z)", base)
+    if general:
+        body = re.sub(r"(?m)^[ \t]*;?[ \t]*live-config[ \t]*=.*(?:\n|$)", "", general.group(1))
+        base = base[:general.start()] + "[general]\nlive-config = 1\n" + body + base[general.end():]
+    else:
+        base = "[general]\nlive-config = 1\n\n" + base
+    color = re.search(r"(?ms)^\[color\][ \t]*\n.*?(?=^\[[^]]+\][ \t]*$|\Z)", base)
+    if color:
+        return base[:color.start()] + color_block + "\n" + base[color.end():]
+    return base.rstrip() + "\n\n" + color_block
+
+def atomic_write(path, content):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = path.with_name("." + path.name + ".tmp")
+    temporary.write_text(content, encoding="utf-8")
+    os.replace(temporary, path)
+
+def run_cava(args):
+    binary = "/usr/bin/cava"
+    if any(arg in ("-h", "--help", "-v", "--version") for arg in args):
+        return subprocess.call([binary] + args)
+    if any(arg in ("-p", "--config") or arg.startswith("--config=") for arg in args):
+        return subprocess.call([binary] + args)
+
+    runtime = Path(os.environ.get("XDG_RUNTIME_DIR", HOME / ".cache")) / "rice-visualizer"
+    config_path = runtime / "cava-{}.conf".format(os.getpid())
+    try:
+        base = CAVA_CONFIG.read_text(encoding="utf-8")
+    except OSError:
+        base = ""
+    scheme = current_scheme()
+    atomic_write(config_path, build_cava_config(base, scheme))
+    set_konsole_profile(scheme)
+    child = subprocess.Popen([binary, "-p", str(config_path)] + args)
+    previous = scheme
+    try:
+        while child.poll() is None:
+            time.sleep(0.8)
+            current = current_scheme()
+            if current != previous:
+                atomic_write(config_path, build_cava_config(base, current))
+                set_konsole_profile(current)
+                try:
+                    os.kill(child.pid, signal.SIGUSR2)
+                except ProcessLookupError:
+                    pass
+                previous = current
+        return child.returncode
+    except KeyboardInterrupt:
+        child.send_signal(signal.SIGINT)
+        try:
+            return child.wait(timeout=2)
+        except subprocess.TimeoutExpired:
+            child.terminate()
+            return child.wait()
+    finally:
+        if child.poll() is None:
+            child.terminate()
+            try:
+                child.wait(timeout=2)
+            except subprocess.TimeoutExpired:
+                child.kill()
+                child.wait()
+        try:
+            config_path.unlink()
+        except FileNotFoundError:
+            pass
+
+def run_cmatrix(args):
+    explicit_color = any(arg == "-C" or
+                         (arg.startswith("-") and not arg.startswith("--") and "C" in arg[1:])
+                         for arg in args)
+    rainbow = any(arg == "-r" or
+                  (arg.startswith("-") and not arg.startswith("--") and "r" in arg[1:])
+                  for arg in args)
+    automatic = not explicit_color and not rainbow
+    scheme = current_scheme()
+    color, key = matrix_color(scheme)
+    actual_args = (["-C", color] + args) if automatic else list(args)
+    set_konsole_profile(scheme)
+
+    child_pid, master_fd = pty.fork()
+    if child_pid == 0:
+        try:
+            os.execv("/usr/bin/cmatrix", ["/usr/bin/cmatrix"] + actual_args)
+        except OSError:
+            os._exit(127)
+
+    input_fd = sys.stdin.fileno()
+    old_termios = None
+    old_handlers = {}
+    reaped = False
+    try:
+        if os.isatty(input_fd):
+            old_termios = termios.tcgetattr(input_fd)
+            tty.setraw(input_fd, termios.TCSANOW)
+            raw = termios.tcgetattr(input_fd)
+            raw[3] |= termios.ISIG
+            termios.tcsetattr(input_fd, termios.TCSANOW, raw)
+
+        def resize_terminal(signum=None, frame=None):
+            if not os.isatty(input_fd):
+                return
+            try:
+                winsize = fcntl.ioctl(input_fd, termios.TIOCGWINSZ, b"\0" * 8)
+                fcntl.ioctl(master_fd, termios.TIOCSWINSZ, winsize)
+            except OSError:
+                pass
+
+        def forward_signal(signum, frame):
+            try:
+                os.killpg(child_pid, signum)
+            except ProcessLookupError:
+                pass
+
+        resize_terminal()
+        for sig in (signal.SIGWINCH,):
+            old_handlers[sig] = signal.getsignal(sig)
+            signal.signal(sig, resize_terminal)
+        for sig in (signal.SIGINT, signal.SIGTERM):
+            old_handlers[sig] = signal.getsignal(sig)
+            signal.signal(sig, forward_signal)
+
+        previous = scheme
+        next_theme_check = time.monotonic() + 0.8
+        master_open = True
+        while master_open:
+            try:
+                waited, status = os.waitpid(child_pid, os.WNOHANG)
+            except ChildProcessError:
+                reaped = True
+                return 0
+            if waited:
+                reaped = True
+                while True:
+                    try:
+                        ready, _, _ = select.select([master_fd], [], [], 0)
+                        if not ready:
+                            break
+                        output = os.read(master_fd, 4096)
+                        if not output:
+                            break
+                        os.write(sys.stdout.fileno(), output)
+                    except OSError:
+                        break
+                if os.WIFEXITED(status):
+                    return os.WEXITSTATUS(status)
+                if os.WIFSIGNALED(status):
+                    return 128 + os.WTERMSIG(status)
+                return 1
+
+            read_fds = [master_fd]
+            if os.isatty(input_fd):
+                read_fds.append(input_fd)
+            try:
+                ready, _, _ = select.select(read_fds, [], [], 0.2)
+            except InterruptedError:
+                continue
+
+            if master_fd in ready:
+                try:
+                    output = os.read(master_fd, 4096)
+                    if output:
+                        os.write(sys.stdout.fileno(), output)
+                    else:
+                        master_open = False
+                except OSError:
+                    master_open = False
+
+            if os.isatty(input_fd) and input_fd in ready:
+                try:
+                    data = os.read(input_fd, 4096)
+                    if data:
+                        os.write(master_fd, data)
+                    else:
+                        master_open = False
+                except OSError:
+                    master_open = False
+
+            if time.monotonic() >= next_theme_check:
+                current = current_scheme()
+                if current != previous:
+                    set_konsole_profile(current)
+                    if automatic:
+                        _, key = matrix_color(current)
+                        try:
+                            os.write(master_fd, key.encode("ascii"))
+                        except OSError:
+                            pass
+                    previous = current
+                next_theme_check = time.monotonic() + 0.8
+
+        try:
+            _, status = os.waitpid(child_pid, 0)
+            reaped = True
+            if os.WIFEXITED(status):
+                return os.WEXITSTATUS(status)
+            if os.WIFSIGNALED(status):
+                return 128 + os.WTERMSIG(status)
+            return 1
+        except ChildProcessError:
+            reaped = True
+            return 0
+    finally:
+        if old_termios is not None:
+            try:
+                termios.tcsetattr(input_fd, termios.TCSADRAIN, old_termios)
+            except termios.error:
+                pass
+        for sig, handler in old_handlers.items():
+            signal.signal(sig, handler)
+        if not reaped:
+            try:
+                os.killpg(child_pid, signal.SIGTERM)
+            except ProcessLookupError:
+                pass
+            try:
+                os.waitpid(child_pid, 0)
+            except ChildProcessError:
+                pass
+        try:
+            os.close(master_fd)
+        except OSError:
+            pass
+
+def main():
+    if len(sys.argv) < 2 or sys.argv[1] not in ("cava", "cmatrix"):
+        raise SystemExit("Usage: rice-visualizer {cava|cmatrix} [options]")
+    return run_cava(sys.argv[2:]) if sys.argv[1] == "cava" else run_cmatrix(sys.argv[2:])
+
+if __name__ == "__main__":
+    raise SystemExit(main() or 0)

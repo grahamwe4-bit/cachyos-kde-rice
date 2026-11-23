@@ -1,0 +1,201 @@
+[ColorEffects:Disabled]
+Color=56,56,56
+ColorAmount=0
+ColorEffect=0
+ContrastAmount=0.65
+ContrastEffect=1
+IntensityAmount=0.1
+IntensityEffect=2
+
+[ColorEffects:Inactive]
+ChangeSelectionColor=true
+Color=112,111,110
+ColorAmount=0.025
+ColorEffect=2
+ContrastAmount=0.1
+ContrastEffect=2
+Enable=false
+IntensityAmount=0
+IntensityEffect=0
+
+[Colors:Button]
+BackgroundAlternate=26,22,34
+BackgroundNormal=26,22,34
+DecorationFocus=163,138,216
+DecorationHover=90,55,164
+ForegroundActive=187,169,226
+ForegroundInactive=171,155,141
+ForegroundLink=163,138,216
+ForegroundNegative=166,142,217
+ForegroundNeutral=143,113,208
+ForegroundNormal=205,200,214
+ForegroundPositive=90,55,164
+ForegroundVisited=184,164,225
+
+[Colors:Complementary]
+BackgroundAlternate=26,22,34
+BackgroundNormal=10,8,15
+DecorationFocus=163,138,216
+DecorationHover=90,55,164
+ForegroundActive=187,169,226
+ForegroundInactive=171,155,141
+ForegroundLink=163,138,216
+ForegroundNegative=166,142,217
+ForegroundNeutral=143,113,208
+ForegroundNormal=205,200,214
+ForegroundPositive=90,55,164
+ForegroundVisited=184,164,225
+
+[Colors:Header]
+BackgroundAlternate=26,22,34
+BackgroundNormal=15,12,22
+DecorationFocus=163,138,216
+DecorationHover=90,55,164
+ForegroundActive=187,169,226
+ForegroundInactive=171,155,141
+ForegroundLink=163,138,216
+ForegroundNegative=166,142,217
+ForegroundNeutral=143,113,208
+ForegroundNormal=205,200,214
+ForegroundPositive=90,55,164
+ForegroundVisited=184,164,225
+
+[Colors:Header][Inactive]
+BackgroundAlternate=26,22,34
+BackgroundNormal=15,12,22
+DecorationFocus=163,138,216
+DecorationHover=90,55,164
+ForegroundActive=187,169,226
+ForegroundInactive=171,155,141
+ForegroundLink=163,138,216
+ForegroundNegative=166,142,217
+ForegroundNeutral=143,113,208
+ForegroundNormal=205,200,214
+ForegroundPositive=90,55,164
+ForegroundVisited=184,164,225
+
+[Colors:Selection]
+BackgroundAlternate=90,55,164
+BackgroundNormal=163,138,216
+DecorationFocus=163,138,216
+DecorationHover=90,55,164
+ForegroundActive=8,7,11
+ForegroundInactive=171,155,141
+ForegroundLink=8,7,11
+ForegroundNegative=166,142,217
+ForegroundNeutral=143,113,208
+ForegroundNormal=8,7,11
+ForegroundPositive=90,55,164
+ForegroundVisited=184,164,225
+
+[Colors:Tooltip]
+BackgroundAlternate=26,22,34
+BackgroundNormal=15,12,22
+DecorationFocus=163,138,216
+DecorationHover=90,55,164
+ForegroundActive=187,169,226
+ForegroundInactive=171,155,141
+ForegroundLink=163,138,216
+ForegroundNegative=166,142,217
+ForegroundNeutral=143,113,208
+ForegroundNormal=205,200,214
+ForegroundPositive=90,55,164
+ForegroundVisited=184,164,225
+
+[Colors:View]
+BackgroundAlternate=26,22,34
+BackgroundNormal=8,7,11
+DecorationFocus=163,138,216
+DecorationHover=90,55,164
+ForegroundActive=187,169,226
+ForegroundInactive=171,155,141
+ForegroundLink=163,138,216
+ForegroundNegative=166,142,217
+ForegroundNeutral=143,113,208
+ForegroundNormal=205,200,214
+ForegroundPositive=90,55,164
+ForegroundVisited=184,164,225
+
+[Colors:Window]
+BackgroundAlternate=26,22,34
+BackgroundNormal=15,12,22
+DecorationFocus=163,138,216
+DecorationHover=90,55,164
+ForegroundActive=187,169,226
+ForegroundInactive=171,155,141
+ForegroundLink=163,138,216
+ForegroundNegative=166,142,217
+ForegroundNeutral=143,113,208
+ForegroundNormal=205,200,214
+ForegroundPositive=90,55,164
+ForegroundVisited=184,164,225
+
+[General]
+ColorScheme=LOFI14
+Name=LO-FI / 14 · Night Radio
+Name[ar]=LO-FI / 14 · Night Radio
+Name[az]=LO-FI / 14 · Night Radio
+Name[bg]=LO-FI / 14 · Night Radio
+Name[bs]=LO-FI / 14 · Night Radio
+Name[ca]=LO-FI / 14 · Night Radio
+Name[ca@valencia]=LO-FI / 14 · Night Radio
+Name[cs]=LO-FI / 14 · Night Radio
+Name[da]=LO-FI / 14 · Night Radio
+Name[de]=LO-FI / 14 · Night Radio
+Name[el]=LO-FI / 14 · Night Radio
+Name[en_GB]=LO-FI / 14 · Night Radio
+Name[eo]=LO-FI / 14 · Night Radio
+Name[es]=LO-FI / 14 · Night Radio
+Name[et]=LO-FI / 14 · Night Radio
+Name[eu]=LO-FI / 14 · Night Radio
+Name[fi]=LO-FI / 14 · Night Radio
+Name[fr]=LO-FI / 14 · Night Radio
+Name[gl]=LO-FI / 14 · Night Radio
+Name[he]=LO-FI / 14 · Night Radio
+Name[hi]=LO-FI / 14 · Night Radio
+Name[hu]=LO-FI / 14 · Night Radio
+Name[ia]=LO-FI / 14 · Night Radio
+Name[id]=LO-FI / 14 · Night Radio
+Name[is]=LO-FI / 14 · Night Radio
+Name[it]=LO-FI / 14 · Night Radio
+Name[ja]=LO-FI / 14 · Night Radio
+Name[ka]=LO-FI / 14 · Night Radio
+Name[ko]=LO-FI / 14 · Night Radio
+Name[lt]=LO-FI / 14 · Night Radio
+Name[lv]=LO-FI / 14 · Night Radio
+Name[nb]=LO-FI / 14 · Night Radio
+Name[nl]=LO-FI / 14 · Night Radio
+Name[nn]=LO-FI / 14 · Night Radio
+Name[pa]=LO-FI / 14 · Night Radio
+Name[pl]=LO-FI / 14 · Night Radio
+Name[pt]=LO-FI / 14 · Night Radio
+Name[pt_BR]=LO-FI / 14 · Night Radio
+Name[ro]=LO-FI / 14 · Night Radio
+Name[ru]=LO-FI / 14 · Night Radio
+Name[sa]=LO-FI / 14 · Night Radio
+Name[sk]=LO-FI / 14 · Night Radio
+Name[sl]=LO-FI / 14 · Night Radio
+Name[sr]=LO-FI / 14 · Night Radio
+Name[sr@ijekavian]=LO-FI / 14 · Night Radio
+Name[sr@ijekavianlatin]=LO-FI / 14 · Night Radio
+Name[sr@latin]=LO-FI / 14 · Night Radio
+Name[sv]=LO-FI / 14 · Night Radio
+Name[ta]=LO-FI / 14 · Night Radio
+Name[tg]=LO-FI / 14 · Night Radio
+Name[tr]=LO-FI / 14 · Night Radio
+Name[uk]=LO-FI / 14 · Night Radio
+Name[zh_CN]=LO-FI / 14 · Night Radio
+Name[zh_TW]=LO-FI / 14 · Night Radio
+shadeSortColumn=true
+
+[KDE]
+contrast=4
+
+[WM]
+activeBackground=90,55,164
+activeBlend=8,7,11
+activeForeground=8,7,11
+inactiveBackground=26,22,34
+inactiveBlend=171,155,141
+inactiveForeground=205,200,214
+

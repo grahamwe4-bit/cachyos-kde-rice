@@ -1,0 +1,71 @@
+/* Generated from the active KDE theme wallpaper and color scheme. */
+@define-color bar_bg #0b0907;
+@define-color surface #130e09;
+@define-color ink #d7cec7;
+@define-color muted #ab9b8d;
+@define-color accent #ffa963;
+@define-color accent2 #ffc08c;
+@define-color warning #e6b35b;
+@define-color danger #ff6875;
+
+window#waybar {
+  background: transparent;
+  color: @ink;
+  font-family: "Noto Sans", "Cantarell", sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+}
+window#waybar > box {
+  background-color: alpha(@bar_bg, 0.90);
+  border: 1px solid alpha(@accent, 0.42);
+  border-radius: 0 0 13px 13px;
+}
+.modules-left, .modules-center, .modules-right {
+  margin: 4px 7px;
+}
+#custom-rice {
+  color: @accent;
+  background-color: alpha(@surface, 0.78);
+  border: 1px solid alpha(@accent, 0.54);
+  border-radius: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 0 14px;
+  margin: 2px 3px;
+}
+#clock {
+  color: @ink;
+  background-color: alpha(@surface, 0.76);
+  border: 1px solid alpha(@accent, 0.20);
+  border-radius: 9px;
+  padding: 0 16px;
+  margin: 2px 3px;
+  font-weight: 600;
+}
+#cpu, #memory, #network, #pulseaudio, #battery, #tray {
+  background-color: alpha(@surface, 0.76);
+  border: 1px solid alpha(@accent, 0.18);
+  border-radius: 9px;
+  padding: 0 10px;
+  margin: 2px 2px;
+}
+#cpu { color: @accent; }
+#memory { color: @accent2; }
+#network { color: @ink; }
+#pulseaudio { color: @accent; }
+#battery { color: @ink; }
+#battery.warning { color: @warning; border-color: alpha(@warning, 0.65); }
+#battery.critical { color: @danger; border-color: alpha(@danger, 0.75); }
+#pulseaudio.muted, #network.disconnected { color: @muted; }
+#tray { padding: 0 8px; }
+#custom-rice:hover, #clock:hover, #cpu:hover, #memory:hover,
+#network:hover, #pulseaudio:hover, #battery:hover {
+  border-color: alpha(@accent, 0.72);
+  background-color: alpha(@surface, 0.94);
+}
+tooltip {
+  background-color: alpha(@bar_bg, 0.96);
+  color: @ink;
+  border: 1px solid alpha(@accent, 0.55);
+  border-radius: 8px;
+}

@@ -1,0 +1,157 @@
+#!/usr/bin/env python3
+from configparser import ConfigParser
+from pathlib import Path
+import json, os, re, shutil, subprocess
+
+HOME = Path.home()
+FETCH_DIR = HOME / ".config/fetch"
+CONFIG = FETCH_DIR / "config"
+LOGO = FETCH_DIR / "logo.txt"
+BACKUP = HOME / ".local/state/rice-backups/fetch-theme-sync-20261123"
+DEFAULT_FIELDS = ["os","host","kernel","uptime","packages","shell","display","wm",
+                  "displaymanager","icons","font","cursor","terminal","cpu","gpu",
+                  "memory","swap","disk","ip","battery","powerprofile","locale","colors"]
+ANSI_RE = re.compile(r"\x1b\[[0-9;]*[A-Za-z]")
+
+def capture(args, timeout=5):
+    return subprocess.run(args, capture_output=True, text=True, timeout=timeout, check=False)
+
+def snapshot(path, key):
+    BACKUP.mkdir(parents=True, exist_ok=True)
+    saved, absent = BACKUP/(key+".original"), BACKUP/(key+".was-absent")
+    if saved.exists() or absent.exists():
+        return
+    if path.is_file():
+        shutil.copy2(path, saved)
+    else:
+        absent.write_text("Absent before areofyl/fetch theme sync.\n", encoding="utf-8")
+
+def atomic_text(path, value, mode=0o644):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_name(path.name+".rice-tmp")
+    tmp.write_text(value, encoding="utf-8")
+    if path.exists():
+        mode = path.stat().st_mode & 0o777
+    os.chmod(tmp, mode)
+    os.replace(tmp, path)
+
+scheme_result = capture(["kreadconfig6","--file","kdeglobals","--group","General","--key","ColorScheme"])
+scheme = scheme_result.stdout.strip()
+if scheme_result.returncode or not scheme:
+    raise SystemExit("Could not read the active KDE color scheme.")
+
+waybar = HOME/".local/bin/rice-waybar-theme"
+if waybar.is_file():
+    try:
+        subprocess.run([str(waybar)], stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
+                       stderr=subprocess.DEVNULL, timeout=15, check=False)
+    except (OSError, subprocess.TimeoutExpired):
+        pass
+
+css_path = HOME/".config/waybar/style.css"
+css = css_path.read_text(encoding="utf-8", errors="ignore") if css_path.is_file() else ""
+def css_color(name):
+    m = re.search(r"(?m)^@define-color\s+"+re.escape(name)+r"\s+(#[0-9a-fA-F]{6})\s*;", css)
+    return m.group(1).lower() if m else None
+
+parser = ConfigParser(interpolation=None)
+parser.optionxform = str
+palette = HOME/".local/share/color-schemes"/(scheme+".colors")
+if palette.is_file():
+    parser.read(palette, encoding="utf-8")
+def kde_color(section, key, fallback):
+    try:
+        rgb = [int(v.strip()) for v in parser.get(section,key).split(",")]
+        if len(rgb) >= 3:
+            return "#{:02x}{:02x}{:02x}".format(*rgb[:3])
+    except Exception:
+        pass
+    return fallback
+accent = css_color("accent") or kde_color("Colors:Window","DecorationFocus","#55e7d0")
+accent2 = css_color("accent2") or kde_color("Colors:Window","ForegroundPositive","#d8e3ef")
+def ansi(hexcolor):
+    return "38;2;"+";".join(str(int(hexcolor[i:i+2],16)) for i in (1,3,5))
+
+label = scheme
+status = HOME/".local/bin/rice-waybar-status"
+if status.is_file():
+    try:
+        result = capture([str(status)])
+        if result.returncode == 0:
+            label = str(json.loads(result.stdout).get("text","")).strip()
+            label = label.lstrip(chr(0x25c8)).strip()
+            if not label:
+                label = scheme
+    except (OSError, subprocess.TimeoutExpired, json.JSONDecodeError):
+        label = scheme
+
+def uncolored_logo():
+    fastfetch = shutil.which("fastfetch")
+    if not fastfetch:
+        raise RuntimeError("fastfetch is needed once to extract the CachyOS ASCII logo.")
+    result = capture([fastfetch,"--logo","CachyOS","--structure","OS","--pipe","true"], timeout=8)
+    if result.returncode:
+        raise RuntimeError("Could not print the CachyOS logo.")
+    rows = result.stdout.splitlines()
+    field_row = None
+    for index, row in enumerate(rows):
+        field = re.search(r"\bOS:",row)
+        if field:
+            field_row = index
+            rows[index] = row[:field.start()]
+            break
+    if field_row is None:
+        raise RuntimeError("fastfetch output did not contain the expected OS label.")
+    art = [ANSI_RE.sub("",line).rstrip() for line in rows]
+    while art and not art[-1].strip():
+        art.pop()
+    if art and len(art)<=64 and max(map(len,art))<=128:
+        return "\n".join(art)+"\n"
+    raise RuntimeError("The extracted CachyOS logo is outside fetch's supported size.")
+
+snapshot(CONFIG,"fetch-config")
+snapshot(LOGO,"fetch-logo")
+FETCH_DIR.mkdir(parents=True,exist_ok=True)
+if not LOGO.exists():
+    atomic_text(LOGO,uncolored_logo())
+
+if CONFIG.exists():
+    source_lines = CONFIG.read_text(encoding="utf-8",errors="replace").splitlines()
+else:
+    source_lines = DEFAULT_FIELDS[:]
+lines, rice_written = [], False
+for raw in source_lines:
+    item = raw.strip()
+    if not item:
+        lines.append(raw)
+        continue
+    if item.startswith("#"):
+        if "rice-fetch-theme managed colors" not in item.lower():
+            lines.append(raw)
+        continue
+    if "=" in item:
+        key = item.split("=",1)[0].strip()
+        if key in {"label_color","logo_inner","logo_outer"}:
+            continue
+        if key == "custom_Rice":
+            if not rice_written:
+                lines.append("custom_Rice="+label)
+                rice_written = True
+            continue
+    if item in {"theme","custom_Rice"}:
+        if not rice_written:
+            lines.append("custom_Rice="+label)
+            rice_written = True
+        continue
+    if item == "icons" and not rice_written:
+        lines.append("custom_Rice="+label)
+        rice_written = True
+    lines.append(raw)
+if not rice_written:
+    lines.append("custom_Rice="+label)
+lines.append("# rice-fetch-theme managed colors")
+for key, value in (("label_color",ansi(accent)),("logo_inner",ansi(accent)),("logo_outer",ansi(accent2))):
+    lines.append(key+"="+value)
+atomic_text(CONFIG,"\n".join(lines).rstrip()+"\n")
+
+print("areofyl/fetch theme synced:",label,"| logo",accent,"/",accent2,"| auto-refresh: enabled")

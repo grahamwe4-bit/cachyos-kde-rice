@@ -1,0 +1,201 @@
+[ColorEffects:Disabled]
+Color=56,56,56
+ColorAmount=0
+ColorEffect=0
+ContrastAmount=0.65
+ContrastEffect=1
+IntensityAmount=0.1
+IntensityEffect=2
+
+[ColorEffects:Inactive]
+ChangeSelectionColor=true
+Color=112,111,110
+ColorAmount=0.025
+ColorEffect=2
+ContrastAmount=0.1
+ContrastEffect=2
+Enable=false
+IntensityAmount=0
+IntensityEffect=0
+
+[Colors:Button]
+BackgroundAlternate=21,35,34
+BackgroundNormal=21,35,34
+DecorationFocus=99,255,246
+DecorationHover=18,201,190
+ForegroundActive=140,255,248
+ForegroundInactive=141,171,169
+ForegroundLink=99,255,246
+ForegroundNegative=255,104,117
+ForegroundNeutral=230,179,91
+ForegroundNormal=199,215,214
+ForegroundPositive=18,201,190
+ForegroundVisited=167,139,250
+
+[Colors:Complementary]
+BackgroundAlternate=21,35,34
+BackgroundNormal=7,16,15
+DecorationFocus=99,255,246
+DecorationHover=18,201,190
+ForegroundActive=140,255,248
+ForegroundInactive=141,171,169
+ForegroundLink=99,255,246
+ForegroundNegative=255,104,117
+ForegroundNeutral=230,179,91
+ForegroundNormal=199,215,214
+ForegroundPositive=18,201,190
+ForegroundVisited=167,139,250
+
+[Colors:Header]
+BackgroundAlternate=21,35,34
+BackgroundNormal=11,23,22
+DecorationFocus=99,255,246
+DecorationHover=18,201,190
+ForegroundActive=140,255,248
+ForegroundInactive=141,171,169
+ForegroundLink=99,255,246
+ForegroundNegative=255,104,117
+ForegroundNeutral=230,179,91
+ForegroundNormal=199,215,214
+ForegroundPositive=18,201,190
+ForegroundVisited=167,139,250
+
+[Colors:Header][Inactive]
+BackgroundAlternate=21,35,34
+BackgroundNormal=11,23,22
+DecorationFocus=99,255,246
+DecorationHover=18,201,190
+ForegroundActive=140,255,248
+ForegroundInactive=141,171,169
+ForegroundLink=99,255,246
+ForegroundNegative=255,104,117
+ForegroundNeutral=230,179,91
+ForegroundNormal=199,215,214
+ForegroundPositive=18,201,190
+ForegroundVisited=167,139,250
+
+[Colors:Selection]
+BackgroundAlternate=18,201,190
+BackgroundNormal=99,255,246
+DecorationFocus=99,255,246
+DecorationHover=18,201,190
+ForegroundActive=7,11,11
+ForegroundInactive=141,171,169
+ForegroundLink=7,11,11
+ForegroundNegative=255,104,117
+ForegroundNeutral=230,179,91
+ForegroundNormal=7,11,11
+ForegroundPositive=18,201,190
+ForegroundVisited=167,139,250
+
+[Colors:Tooltip]
+BackgroundAlternate=21,35,34
+BackgroundNormal=11,23,22
+DecorationFocus=99,255,246
+DecorationHover=18,201,190
+ForegroundActive=140,255,248
+ForegroundInactive=141,171,169
+ForegroundLink=99,255,246
+ForegroundNegative=255,104,117
+ForegroundNeutral=230,179,91
+ForegroundNormal=199,215,214
+ForegroundPositive=18,201,190
+ForegroundVisited=167,139,250
+
+[Colors:View]
+BackgroundAlternate=21,35,34
+BackgroundNormal=7,11,11
+DecorationFocus=99,255,246
+DecorationHover=18,201,190
+ForegroundActive=140,255,248
+ForegroundInactive=141,171,169
+ForegroundLink=99,255,246
+ForegroundNegative=255,104,117
+ForegroundNeutral=230,179,91
+ForegroundNormal=199,215,214
+ForegroundPositive=18,201,190
+ForegroundVisited=167,139,250
+
+[Colors:Window]
+BackgroundAlternate=21,35,34
+BackgroundNormal=11,23,22
+DecorationFocus=99,255,246
+DecorationHover=18,201,190
+ForegroundActive=140,255,248
+ForegroundInactive=141,171,169
+ForegroundLink=99,255,246
+ForegroundNegative=255,104,117
+ForegroundNeutral=230,179,91
+ForegroundNormal=199,215,214
+ForegroundPositive=18,201,190
+ForegroundVisited=167,139,250
+
+[General]
+ColorScheme=PHOSPHOR14Summer
+Name=PHOSPHOR / 14 — Summer
+Name[ar]=PHOSPHOR / 14 — Summer
+Name[az]=PHOSPHOR / 14 — Summer
+Name[bg]=PHOSPHOR / 14 — Summer
+Name[bs]=PHOSPHOR / 14 — Summer
+Name[ca]=PHOSPHOR / 14 — Summer
+Name[ca@valencia]=PHOSPHOR / 14 — Summer
+Name[cs]=PHOSPHOR / 14 — Summer
+Name[da]=PHOSPHOR / 14 — Summer
+Name[de]=PHOSPHOR / 14 — Summer
+Name[el]=PHOSPHOR / 14 — Summer
+Name[en_GB]=PHOSPHOR / 14 — Summer
+Name[eo]=PHOSPHOR / 14 — Summer
+Name[es]=PHOSPHOR / 14 — Summer
+Name[et]=PHOSPHOR / 14 — Summer
+Name[eu]=PHOSPHOR / 14 — Summer
+Name[fi]=PHOSPHOR / 14 — Summer
+Name[fr]=PHOSPHOR / 14 — Summer
+Name[gl]=PHOSPHOR / 14 — Summer
+Name[he]=PHOSPHOR / 14 — Summer
+Name[hi]=PHOSPHOR / 14 — Summer
+Name[hu]=PHOSPHOR / 14 — Summer
+Name[ia]=PHOSPHOR / 14 — Summer
+Name[id]=PHOSPHOR / 14 — Summer
+Name[is]=PHOSPHOR / 14 — Summer
+Name[it]=PHOSPHOR / 14 — Summer
+Name[ja]=PHOSPHOR / 14 — Summer
+Name[ka]=PHOSPHOR / 14 — Summer
+Name[ko]=PHOSPHOR / 14 — Summer
+Name[lt]=PHOSPHOR / 14 — Summer
+Name[lv]=PHOSPHOR / 14 — Summer
+Name[nb]=PHOSPHOR / 14 — Summer
+Name[nl]=PHOSPHOR / 14 — Summer
+Name[nn]=PHOSPHOR / 14 — Summer
+Name[pa]=PHOSPHOR / 14 — Summer
+Name[pl]=PHOSPHOR / 14 — Summer
+Name[pt]=PHOSPHOR / 14 — Summer
+Name[pt_BR]=PHOSPHOR / 14 — Summer
+Name[ro]=PHOSPHOR / 14 — Summer
+Name[ru]=PHOSPHOR / 14 — Summer
+Name[sa]=PHOSPHOR / 14 — Summer
+Name[sk]=PHOSPHOR / 14 — Summer
+Name[sl]=PHOSPHOR / 14 — Summer
+Name[sr]=PHOSPHOR / 14 — Summer
+Name[sr@ijekavian]=PHOSPHOR / 14 — Summer
+Name[sr@ijekavianlatin]=PHOSPHOR / 14 — Summer
+Name[sr@latin]=PHOSPHOR / 14 — Summer
+Name[sv]=PHOSPHOR / 14 — Summer
+Name[ta]=PHOSPHOR / 14 — Summer
+Name[tg]=PHOSPHOR / 14 — Summer
+Name[tr]=PHOSPHOR / 14 — Summer
+Name[uk]=PHOSPHOR / 14 — Summer
+Name[zh_CN]=PHOSPHOR / 14 — Summer
+Name[zh_TW]=PHOSPHOR / 14 — Summer
+shadeSortColumn=true
+
+[KDE]
+contrast=4
+
+[WM]
+activeBackground=18,201,190
+activeBlend=7,11,11
+activeForeground=7,11,11
+inactiveBackground=21,35,34
+inactiveBlend=141,171,169
+inactiveForeground=199,215,214
+

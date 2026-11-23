@@ -1,0 +1,31 @@
+#!/usr/bin/env python3
+import json
+import re
+import subprocess
+
+result = subprocess.run(
+    ["kreadconfig6", "--file", "kdeglobals", "--group", "General", "--key", "ColorScheme"],
+    capture_output=True, text=True
+)
+scheme = result.stdout.strip() or "PHOSPHOR14"
+
+def words(name):
+    return re.sub(r"(?<=[a-z0-9])(?=[A-Z])", " ", name).replace("_", " ")
+
+if scheme.startswith("PHOSPHOR14"):
+    detail = scheme.removeprefix("PHOSPHOR14") or "Phosphor"
+    label = "PHOSPHOR / 14  ·  " + words(detail).upper()
+elif scheme.startswith("LOFI14"):
+    detail = scheme.removeprefix("LOFI14") or "Night Radio"
+    label = "LO-FI  ·  " + words(detail).upper()
+elif scheme.startswith("OVERDRIVE14"):
+    detail = scheme.removeprefix("OVERDRIVE14") or "Hyperpulse"
+    label = "OVERDRIVE  ·  " + words(detail).upper()
+elif scheme == "OldTimes":
+    label = "OLD TIMES"
+elif scheme.startswith("Spectrum14"):
+    label = "SPECTRUM / 32  ·  " + words(scheme.removeprefix("Spectrum14")).upper()
+else:
+    label = "COLORWAYS / 14  ·  " + words(scheme).upper()
+
+print(json.dumps({"text": "◈  " + label, "tooltip": "Active desktop theme: " + label}))

@@ -1,0 +1,68 @@
+#!/usr/bin/env python3
+from pathlib import Path
+import datetime,subprocess,sys,os,json,shutil
+h=Path.home()
+choice=sys.argv[1].capitalize() if len(sys.argv)>1 else "Auto"
+pref=h/".config/phosphor-season"
+
+if len(sys.argv)==1 and pref.exists(): choice=pref.read_text().strip()
+if choice=="Auto":
+ month=datetime.date.today().month
+ choice="Winter" if month in (12,1,2) else "Spring" if month in (3,4,5) else "Summer" if month in (6,7,8) else "Autumn"
+if choice not in ("Spring","Summer","Autumn","Winter"): raise SystemExit("Use auto, spring, summer, autumn, or winter.")
+if len(sys.argv)>1: pref.write_text(sys.argv[1].capitalize())
+ident="PHOSPHOR14"+choice
+def run(*args): subprocess.run(args,check=True)
+run("plasma-apply-colorscheme",ident)
+run("kwriteconfig6","--file","kdeglobals","--group","General","--key","ColorScheme",ident,"--notify")
+run("kwriteconfig6","--file","kdeglobals","--group","Icons","--key","Theme",ident,"--notify")
+# Force Kickoff to load this theme's unique launcher artwork instead of its cached prior-season icon.
+launcher_icon="phosphor14-"+choice.lower()
+run("kwriteconfig6","--file","plasma-org.kde.plasma.desktop-appletsrc","--group","Containments","--group","23","--group","Applets","--group","24","--group","Configuration","--group","General","--key","icon",launcher_icon,"--notify")
+# Refresh the custom launcher fallback as well as the active theme.
+shutil.copy2(h/".local/share/icons"/ident/"scalable/apps/phosphor14.svg",h/".local/share/icons/hicolor/scalable/apps/phosphor14.svg")
+
+run("kwriteconfig6","--file","konsolerc","--group","Desktop Entry","--key","DefaultProfile",ident+".profile","--notify")
+folder=h/".local/share/wallpapers/PHOSPHOR-14"/choice
+video=json.dumps([{"filename":(folder/"live.mp4").as_uri(),"enabled":True,"loop":True}])
+params="{'VideoUrls': <"+repr(video)+">, 'Volume': <0>, 'PauseBatteryLevel': <0>}"
+run("gdbus","call","--session","--dest","org.kde.plasmashell","--object-path","/PlasmaShell","--method","org.kde.PlasmaShell.setWallpaper","luisbocanegra.smart.video.wallpaper.reborn",params,"0")
+for key in ("Image","PreviewImage"):
+ run("kwriteconfig6","--file","kscreenlockerrc","--group","Greeter","--group","Wallpaper","--group","org.kde.image","--group","General","--key",key,(folder/"wallpaper.png").as_uri(),"--notify")
+# Desktop shortcuts cache their icon separately from panel launchers.
+# A season-specific file path invalidates that cache when the shortcut changes.
+desktop=Path(subprocess.check_output(["xdg-user-dir","DESKTOP"],text=True).strip())
+backup=h/".local/state/phosphor-desktop-icon-originals"
+backup.mkdir(parents=True,exist_ok=True)
+changed=[]
+import re
+for shortcut in desktop.glob("*.desktop"):
+ text=shortcut.read_text()
+ section=re.search(r"(?ms)^\[Desktop Entry\]\r?\n(.*?)(?=^\[|\Z)",text)
+ if not section: continue
+ primary=section.group(1)
+ match=re.search(r"(?m)^Icon=(.+)$",primary)
+ if not match: continue
+ name=match.group(1).strip()
+ if "/.local/share/icons/" in name: name=Path(name).stem
+ if name not in ("phosphor14","utilities-terminal"): continue
+ icon=h/".local/share/icons"/ident/"scalable/apps"/(name+".svg")
+ if not icon.is_file(): continue
+ if not (backup/shortcut.name).exists(): shutil.copy2(shortcut,backup/shortcut.name)
+ primary=primary[:match.start(1)]+str(icon)+primary[match.end(1):]
+ new=text[:section.start(1)]+primary+text[section.end(1):]
+ if new!=text:
+  if shortcut.is_symlink():
+   (backup/(shortcut.name+".symlink-target")).write_text(str(shortcut.readlink()))
+   shortcut.unlink()
+  temporary=shortcut.with_name("."+shortcut.name+".phosphor-tmp")
+  temporary.write_text(new)
+  if shortcut.exists(): shutil.copymode(shortcut,temporary)
+  os.replace(temporary,shortcut)
+  changed.append(shortcut.as_uri())
+if changed:
+ subprocess.run(["gdbus","emit","--session","--object-path","/","--signal","org.kde.KDirNotify.FilesChanged",repr(changed)],check=False)
+
+run(str(h/".local/bin/phosphor-refresh-taskbar"),ident)
+subprocess.run([str(h/".local/bin/rice-fetch-theme")],check=False)
+print("PHOSPHOR / 14:",choice,"— matching desktop, lock screen, icons, and terminal")

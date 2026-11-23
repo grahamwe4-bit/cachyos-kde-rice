@@ -1,0 +1,197 @@
+#!/usr/bin/env python3
+# Refresh the current mode's Launcher, pinned app icons, and Plasma icon views.
+import json
+import os
+import re
+import shutil
+import subprocess
+import sys
+import tempfile
+import time
+from pathlib import Path
+
+HOME = Path.home()
+DBUS = [
+    "qdbus6",
+    "org.kde.plasmashell",
+    "/PlasmaShell",
+    "org.kde.PlasmaShell.evaluateScript",
+]
+SUFFIX = {
+    "PHOSPHOR14Spring": "spring",
+    "PHOSPHOR14Summer": "summer",
+    "PHOSPHOR14Autumn": "autumn",
+    "PHOSPHOR14Winter": "winter",
+    "LOFI14": "lofi",
+    "LOFI14Rainline": "lofi-rainline",
+    "LOFI14Afterglow": "lofi-afterglow",
+    "LOFI14Cassette": "lofi-cassette",
+    "OVERDRIVE14": "overdrive",
+    "OVERDRIVE14NeonTempest": "overdrive-tempest",
+    "OVERDRIVE14Solarflare": "overdrive-solarflare",
+    "OVERDRIVE14VioletArc": "overdrive-violet-arc",
+    "OldTimes": "old-times",
+    "Spectrum14NeonHarbor": "spectrum-neon-harbor",
+    "Spectrum14GhostSignal": "spectrum-ghost-signal",
+    "Spectrum14ElectricBloom": "spectrum-electric-bloom",
+    "Spectrum14MidnightPrism": "spectrum-midnight-prism",
+    "Spectrum14ChromeMirage": "spectrum-chrome-mirage",
+    "Spectrum14CircuitRose": "spectrum-circuit-rose",
+    "Spectrum14PlasmaHorizon": "spectrum-plasma-horizon",
+    "Spectrum14QuantumTide": "spectrum-quantum-tide",
+    "Spectrum14StarlightEngine": "spectrum-starlight-engine",
+    "Spectrum14VelvetVoltage": "spectrum-velvet-voltage",
+    "Spectrum14CyberLotus": "spectrum-cyber-lotus",
+    "Spectrum14NightfallReactor": "spectrum-nightfall-reactor",
+    "Spectrum14SolarEcho": "spectrum-solar-echo",
+    "Spectrum14ObsidianPulse": "spectrum-obsidian-pulse",
+    "Spectrum14IridescentRain": "spectrum-iridescent-rain",
+    "Spectrum14LunarFrequency": "spectrum-lunar-frequency",
+    "Spectrum14DeepSpaceRadio": "spectrum-deep-space-radio",
+    "Spectrum14DigitalSakura": "spectrum-digital-sakura",
+    "Spectrum14PhotonGarden": "spectrum-photon-garden",
+    "Spectrum14CobaltReverie": "spectrum-cobalt-reverie",
+    "Spectrum14AmberSignal": "spectrum-amber-signal",
+    "Spectrum14VioletTides": "spectrum-violet-tides",
+    "Spectrum14EmeraldOrbit": "spectrum-emerald-orbit",
+    "Spectrum14CrimsonEclipse": "spectrum-crimson-eclipse",
+    "Spectrum14GlacierProtocol": "spectrum-glacier-protocol",
+    "Spectrum14RoseQuartzDrive": "spectrum-rose-quartz-drive",
+    "Spectrum14SpectralForest": "spectrum-spectral-forest",
+    "Spectrum14GoldenStatic": "spectrum-golden-static",
+    "Spectrum14UltravioletDream": "spectrum-ultraviolet-dream",
+    "Spectrum14OceanicPulse": "spectrum-oceanic-pulse",
+    "Spectrum14RubyTransmission": "spectrum-ruby-transmission",
+    "Spectrum14CelestialDrift": "spectrum-celestial-drift",
+    "AuroraDrift": "aurora-drift",
+    "CrimsonFrequency": "crimson-frequency",
+    "MoonlitOrchid": "moonlit-orchid",
+    "ArcticMirage": "arctic-mirage",
+    "WildwoodCircuit": "wildwood-circuit",
+    "CopperNocturne": "copper-nocturne",
+    "SolarVanta": "solar-vanta",
+    "AbyssalCurrent": "abyssal-current",
+}
+APP_ICONS = (
+    ("org.kde.dolphin.desktop", "org.kde.dolphin"),
+    ("systemsettings.desktop", "preferences-system"),
+    ("com.shellyorg.shelly.desktop", "shelly"),
+)
+DESKTOP_DIR = HOME / ".local/share/applications"
+BACKUP_DIR = HOME / ".local/state/ga401-phosphor-backups/mode-icon-sync/original-desktop-entries"
+REFRESH_ALL = r'''panels().forEach(function (panel) {
+  panel.widgets().forEach(function (widget) {
+    if (widget.type === "org.kde.plasma.kickoff" ||
+        widget.type === "org.kde.plasma.icontasks" ||
+        widget.type === "org.kde.plasma.systemtray") {
+      widget.reloadConfig();
+    }
+  });
+});
+desktops().forEach(function (desktop) {
+  if (desktop.type === "org.kde.plasma.folder") desktop.reloadConfig();
+});'''
+
+def atomic_write(path, contents, mode):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fd, temp_name = tempfile.mkstemp(prefix="." + path.name + ".", dir=path.parent)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as stream:
+            stream.write(contents)
+        os.chmod(temp_name, mode)
+        os.replace(temp_name, path)
+    finally:
+        if os.path.exists(temp_name):
+            os.unlink(temp_name)
+
+def refresh_desktop_icon_entries(theme):
+    icons_dir = HOME / ".local/share/icons" / theme / "scalable/apps"
+    changed = []
+    for desktop_name, icon_name in APP_ICONS:
+        icon_path = icons_dir / (icon_name + ".svg")
+        if not icon_path.is_file():
+            raise SystemExit(f"Missing {icon_name} icon for {theme}: {icon_path}")
+
+        local_file = DESKTOP_DIR / desktop_name
+        if local_file.is_symlink():
+            raise SystemExit(f"Refusing to replace symlinked desktop entry: {local_file}")
+        if local_file.exists():
+            source_file = local_file
+            backup_file = BACKUP_DIR / (desktop_name + ".user-original")
+        else:
+            source_file = Path("/usr/share/applications") / desktop_name
+            backup_file = BACKUP_DIR / (desktop_name + ".system-original")
+        if not source_file.is_file():
+            raise SystemExit(f"Missing application entry: {source_file}")
+        if not backup_file.exists():
+            BACKUP_DIR.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(source_file, backup_file)
+
+        old_text = source_file.read_text(encoding="utf-8")
+        section = re.search(r"(?ms)^\[Desktop Entry\]\r?\n(.*?)(?=^\[|\Z)", old_text)
+        if not section:
+            raise SystemExit(f"No Desktop Entry section in {source_file}")
+        body = section.group(1)
+        icon_match = re.search(r"(?m)^Icon=.*$", body)
+        if icon_match:
+            body = body[:icon_match.start()] + "Icon=" + str(icon_path) + body[icon_match.end():]
+        else:
+            body += "Icon=" + str(icon_path) + "\n"
+        marker = "X-Rice-ModeIcon=true"
+        if not re.search(r"(?m)^X-Rice-ModeIcon=", body):
+            body += marker + "\n"
+        new_text = old_text[:section.start(1)] + body + old_text[section.end(1):]
+        mode = source_file.stat().st_mode & 0o777
+        if new_text != old_text or source_file != local_file:
+            atomic_write(local_file, new_text, mode)
+            changed.append(local_file.as_uri())
+
+    if changed:
+        # Re-index the two app entries so pinned launchers receive the new icon paths.
+        subprocess.run(["kbuildsycoca6"], check=True, stdout=subprocess.DEVNULL)
+        subprocess.run(
+            ["gdbus", "emit", "--session", "--object-path", "/", "--signal",
+             "org.kde.KDirNotify.FilesChanged", repr(changed)], check=False
+        )
+        time.sleep(0.2)
+
+def set_running_launcher_icon(icon_name):
+    encoded = json.dumps(icon_name)
+    script = (
+        "panels().forEach(function(panel){"
+        "panel.widgets('org.kde.plasma.kickoff').forEach(function(widget){"
+        "widget.currentConfigGroup=['General'];"
+        f"widget.writeConfig('icon',{encoded});"
+        "widget.reloadConfig();"
+        "});});"
+    )
+    subprocess.run(DBUS + [script], check=True)
+
+if len(sys.argv) != 2:
+    raise SystemExit("Pass the expected icon theme name.")
+expected = sys.argv[1]
+read_theme = ["kreadconfig6", "--file", "kdeglobals", "--group", "Icons", "--key", "Theme"]
+deadline = time.monotonic() + 3.0
+while True:
+    active = subprocess.check_output(read_theme, text=True).strip()
+    if active == expected:
+        break
+    if time.monotonic() >= deadline:
+        raise SystemExit(f"Icon theme did not settle on {expected}; still {active}.")
+    time.sleep(0.1)
+
+refresh_desktop_icon_entries(expected)
+time.sleep(0.25)
+subprocess.run([str(HOME / ".local/bin/phosphor-refresh-icons")], check=True)
+time.sleep(0.15)
+
+if expected in SUFFIX:
+    suffix = SUFFIX[expected]
+    for icon_name in (f"phosphor14-refresh-{suffix}", f"phosphor14-{suffix}"):
+        icon_file = HOME / ".local/share/icons" / expected / "scalable/apps" / f"{icon_name}.svg"
+        if not icon_file.is_file():
+            raise SystemExit(f"Missing launcher refresh icon: {icon_file}")
+        set_running_launcher_icon(icon_name)
+        time.sleep(0.18)
+
+subprocess.run(DBUS + [REFRESH_ALL], check=True)
