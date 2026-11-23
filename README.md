@@ -1,3 +1,8 @@
+# tut in docs
+
+
+
+
 # CachyOS KDE Rice
 
 A snapshot of a custom CachyOS KDE Plasma 6 desktop rice, assembled from the running setup on 2026-11-23. It includes the theme switcher, the seasonal/session widget, Waybar, Konsole profiles, Matrix and CAVA launchers, synchronized icons and color schemes, and the wallpaper collections.
