@@ -28,6 +28,8 @@ The installer backs up files it replaces to `~/.local/state/cachyos-kde-rice/bac
 
 The live wallpaper switching uses the KDE **Smart Video Wallpaper Reborn** wallpaper plugin. Static backgrounds are included as fallbacks. The Waybar configuration targets the original laptop display (`eDP-1`) and is optional; it does not replace Plasma's panel.
 
+For the full order of operations—including package setup, areofyl/fetch, live wallpapers, the Sessions widget, startup visualizers, and optional Waybar—see the [installation and setup tutorial](docs/INSTALLATION.md).
+
 ## Tools and upstream software
 
 The setup uses KDE Plasma 6, Konsole, Fish, CAVA, CMatrix, Waybar, `plasma-apply-colorscheme`, and KDE's `kwriteconfig6`/`kreadconfig6`. The Fish greeting runs the live command [areofyl/fetch](https://github.com/areofyl/fetch); its upstream program is intentionally not copied as a compiled binary. Install it from its upstream project, then use the included theme-sync scripts. `fastfetch` is only used by the theme-sync script as a one-time CachyOS logo extractor if no fetch logo has been saved yet. Building the included watcher requires a C compiler.
